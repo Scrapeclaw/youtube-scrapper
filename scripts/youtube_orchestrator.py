@@ -416,6 +416,9 @@ class ResilientOrchestrator:
                 # Browser restart check
                 if channels_since_restart >= config['browser_restart_interval']:
                     logger.info("Restarting browser to prevent memory issues...")
+                    # Rotate proxy session for a fresh IP
+                    if hasattr(scraper, 'proxy_manager') and scraper.proxy_manager and scraper.proxy_manager.enabled:
+                        scraper.proxy_manager.rotate_session()
                     await scraper.cleanup()
                     await asyncio.sleep(5)
                     await scraper.start_browser(headless=self.headless)
@@ -471,6 +474,10 @@ class ResilientOrchestrator:
                     logger.error(f"Rate limited! Implementing cooldown...")
                     self._record_channel_failure(queue_data, progress, channel_id, str(e))
                     
+                    # Rotate proxy session for a fresh IP on rate limit
+                    if hasattr(scraper, 'proxy_manager') and scraper.proxy_manager and scraper.proxy_manager.enabled:
+                        scraper.proxy_manager.rotate_session()
+                    
                     # Restart browser and wait
                     await scraper.cleanup()
                     cooldown = self._calculate_cooldown(attempts + 1)
@@ -495,6 +502,8 @@ class ResilientOrchestrator:
                     # Check if too many consecutive failures
                     if self._check_consecutive_failures(queue_data) >= 5:
                         logger.warning("Too many consecutive failures. Restarting browser...")
+                        if hasattr(scraper, 'proxy_manager') and scraper.proxy_manager and scraper.proxy_manager.enabled:
+                            scraper.proxy_manager.rotate_session()
                         await scraper.cleanup()
                         await asyncio.sleep(30)
                         await scraper.start_browser(headless=self.headless)

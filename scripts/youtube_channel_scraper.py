@@ -33,6 +33,12 @@ except ImportError:
     get_stealth_scripts = None
     HumanBehavior = None
 
+# Import proxy manager
+try:
+    from proxy_manager import ProxyManager
+except ImportError:
+    ProxyManager = None
+
 # Set UTF-8 encoding for stdout to handle emoji characters
 if sys.platform == 'win32':
     try:
@@ -197,6 +203,9 @@ class YouTubeScraperPlaywright:
         self.page = None
         self.queue_file = queue_file
 
+        # Initialize proxy manager
+        self.proxy_manager = self._init_proxy_manager()
+
         # Setup directories (region-specific if queue_file or config_path provided)
         self.output_dir = get_output_dir(queue_file, self.config_path)
         self.thumbnails_dir = get_thumbnails_dir(queue_file, self.config_path)
@@ -215,6 +224,26 @@ class YouTubeScraperPlaywright:
                 'max_videos_to_scrape': 6,
                 'headless': True
             }
+
+    def _init_proxy_manager(self):
+        """Initialize proxy manager from config or environment variables"""
+        if ProxyManager is None:
+            return None
+
+        # Try environment variables first
+        pm = ProxyManager.from_env()
+        if pm.enabled:
+            logger.info(f"Proxy loaded from environment: {pm}")
+            return pm
+
+        # Fall back to config file
+        pm = ProxyManager.from_config(self.config_path)
+        if pm.enabled:
+            logger.info(f"Proxy loaded from config: {pm}")
+            return pm
+
+        logger.debug("No proxy configured — running without proxy")
+        return pm
 
     async def start_browser(self, headless: bool = True):
         """Start Playwright browser with advanced anti-detection measures"""
@@ -240,8 +269,16 @@ class YouTubeScraperPlaywright:
             args=chrome_args
         )
 
-        # Create context with realistic fingerprint
-        self.context = await self.browser.new_context(
+        # Build proxy config if proxy manager is enabled
+        proxy_config = None
+        if self.proxy_manager and self.proxy_manager.enabled:
+            proxy_config = self.proxy_manager.get_playwright_proxy()
+            if proxy_config:
+                logger.info(f"Proxy enabled: {self.proxy_manager}")
+                logger.info(f"Browser using proxy: {self.proxy_manager.provider} → {self.proxy_manager.host}:{self.proxy_manager.port}")
+
+        # Create context with realistic fingerprint (and optional proxy)
+        context_kwargs = dict(
             viewport=fingerprint['viewport'],
             user_agent=fingerprint['user_agent'],
             locale=fingerprint['locale'],
@@ -252,6 +289,10 @@ class YouTubeScraperPlaywright:
             java_script_enabled=True,
             bypass_csp=True,  # Bypass Content Security Policy for script injection
         )
+        if proxy_config:
+            context_kwargs['proxy'] = proxy_config
+
+        self.context = await self.browser.new_context(**context_kwargs)
 
         # Create page
         self.page = await self.context.new_page()

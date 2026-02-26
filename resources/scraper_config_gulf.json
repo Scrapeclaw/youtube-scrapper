@@ -1,4 +1,11 @@
 {
+  "proxy": {
+    "enabled": false,
+    "provider": "brightdata",
+    "country": "ae",
+    "sticky": true,
+    "sticky_ttl_minutes": 10
+  },
   "categories": [
     "gaming",
     "tech",
