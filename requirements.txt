@@ -1,0 +1,17 @@
+# Apify SDK
+apify>=2.0.0
+
+# Browser automation
+playwright>=1.40.0
+
+# HTTP client (for thumbnail downloads)
+aiohttp>=3.9.0
+
+# Image processing (thumbnail resize)
+Pillow>=10.0.0
+
+# Environment variable loading
+python-dotenv>=1.0.0
+
+# Standard utilities (already in stdlib, listed for clarity)
+# asyncio, json, pathlib, logging — no install needed

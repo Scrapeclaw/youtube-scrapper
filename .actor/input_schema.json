@@ -1,0 +1,122 @@
+{
+  "title": "YouTube Channel Scraper",
+  "description": "Scrapes YouTube channels by category and location, or scrapes a specific list of channel handles.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "mode": {
+      "title": "Run Mode",
+      "type": "string",
+      "enum": ["full", "discovery_only", "scrape_channels"],
+      "enumTitles": [
+        "Full (discover + scrape)",
+        "Discovery only (find channel handles)",
+        "Scrape specific channels"
+      ],
+      "default": "full",
+      "description": "full = discover channels then scrape them; discovery_only = only find channel handles; scrape_channels = scrape the channelHandles list directly.",
+      "editor": "select"
+    },
+    "region": {
+      "title": "Region Preset",
+      "type": "string",
+      "enum": ["ind", "us", "uk", "eur", "gulf", "east", "custom"],
+      "enumTitles": [
+        "India (ind)",
+        "United States (us)",
+        "United Kingdom (uk)",
+        "Europe (eur)",
+        "Gulf / Middle East (gulf)",
+        "East Asia (east)",
+        "Custom (use categories & locations below)"
+      ],
+      "default": "ind",
+      "description": "Pre-configured region with relevant categories and locations. Choose 'custom' to specify your own.",
+      "editor": "select"
+    },
+    "categories": {
+      "title": "Categories",
+      "type": "array",
+      "description": "Content categories to discover (used when region = custom or to override preset).",
+      "editor": "stringList",
+      "items": { "type": "string" },
+      "default": [
+        "gaming", "tech", "beauty", "fashion", "fitness",
+        "food", "travel", "music", "education", "comedy",
+        "lifestyle", "cooking", "diy", "art", "finance"
+      ]
+    },
+    "locations": {
+      "title": "Locations",
+      "type": "array",
+      "description": "Geographic locations to search within (used when region = custom or to override preset).",
+      "editor": "stringList",
+      "items": { "type": "string" },
+      "default": ["India", "Mumbai", "Delhi", "Bangalore"]
+    },
+    "channelHandles": {
+      "title": "Channel Handles (scrape_channels mode)",
+      "type": "array",
+      "description": "List of YouTube channel handles or URLs to scrape directly. Used when mode = scrape_channels.",
+      "editor": "stringList",
+      "items": { "type": "string" },
+      "example": ["@MrBeast", "@Veritasium", "https://www.youtube.com/@mkbhd"]
+    },
+    "maxChannels": {
+      "title": "Max Channels to Scrape",
+      "type": "integer",
+      "description": "Maximum number of channels to scrape (0 = unlimited).",
+      "default": 100,
+      "minimum": 0,
+      "maximum": 10000,
+      "editor": "number"
+    },
+    "maxVideosPerChannel": {
+      "title": "Max Recent Videos Per Channel",
+      "type": "integer",
+      "description": "Number of recent videos to scrape per channel.",
+      "default": 6,
+      "minimum": 0,
+      "maximum": 30,
+      "editor": "number"
+    },
+    "downloadThumbnails": {
+      "title": "Download Thumbnails to Key-Value Store",
+      "type": "boolean",
+      "description": "If enabled, profile pics and video thumbnails are downloaded and stored in the actor's Key-Value store.",
+      "default": false,
+      "editor": "checkbox"
+    },
+    "minSubscribers": {
+      "title": "Minimum Subscribers Filter",
+      "type": "integer",
+      "description": "Skip channels with fewer subscribers than this value (0 = no filter).",
+      "default": 0,
+      "minimum": 0,
+      "editor": "number"
+    },
+    "maxDiscoveryRetries": {
+      "title": "Max Discovery Retries",
+      "type": "integer",
+      "description": "How many times to retry the discovery phase on failure.",
+      "default": 3,
+      "minimum": 1,
+      "maximum": 10,
+      "editor": "number"
+    },
+    "headless": {
+      "title": "Headless Browser",
+      "type": "boolean",
+      "description": "Run the browser in headless mode. Always true on Apify; set to false for local debugging only.",
+      "default": true,
+      "editor": "checkbox"
+    },
+    "proxyConfiguration": {
+      "title": "Proxy Configuration",
+      "type": "object",
+      "description": "Apify proxy settings. Leave empty to run without a proxy or use Apify Residential proxies.",
+      "prefill": { "useApifyProxy": true, "apifyProxyGroups": ["RESIDENTIAL"] },
+      "editor": "proxy"
+    }
+  }
+}

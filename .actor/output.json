@@ -1,0 +1,89 @@
+[
+  {
+    "channel_id": "TechBurner",
+    "channel_name": "Tech Burner",
+    "handle": "@TechBurner",
+    "channel_url": "https://www.youtube.com/@TechBurner",
+    "subscribers": 8500000,
+    "influencer_tier": "mega",
+    "video_count": 6,
+    "total_views": 950000000,
+    "description": "India's largest tech YouTube channel. Covering smartphones, gadgets, laptops and everything tech.",
+    "profile_pic_url": "https://yt3.googleusercontent.com/example_profile_pic.jpg",
+    "banner_url": "https://yt3.googleusercontent.com/example_banner.jpg",
+    "is_verified": true,
+    "joined_date": "Jan 1, 2016",
+    "country": "India",
+    "category": "tech",
+    "location": "India",
+    "external_links": [
+      "https://instagram.com/techburner",
+      "https://twitter.com/techburner"
+    ],
+    "recent_videos": [
+      {
+        "video_id": "dQw4w9WgXcQ",
+        "title": "Best Budget Smartphones 2025 - Top 5 Picks!",
+        "thumbnail_url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+        "view_count": 1200000,
+        "upload_date": "2 days ago",
+        "duration": "12:34"
+      },
+      {
+        "video_id": "xvFZjo5PgG0",
+        "title": "OnePlus 13 Unboxing & First Look",
+        "thumbnail_url": "https://i.ytimg.com/vi/xvFZjo5PgG0/hqdefault.jpg",
+        "view_count": 850000,
+        "upload_date": "1 week ago",
+        "duration": "10:15"
+      }
+    ],
+    "video_thumbnails": [
+      "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+      "https://i.ytimg.com/vi/xvFZjo5PgG0/hqdefault.jpg"
+    ],
+    "video_urls": [
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "https://www.youtube.com/watch?v=xvFZjo5PgG0"
+    ],
+    "scrape_timestamp": "2026-03-03T10:30:00.000Z"
+  },
+  {
+    "channel_id": "BeBeautifulIndia",
+    "channel_name": "Be Beautiful India",
+    "handle": "@BeBeautifulIndia",
+    "channel_url": "https://www.youtube.com/@BeBeautifulIndia",
+    "subscribers": 2100000,
+    "influencer_tier": "mega",
+    "video_count": 6,
+    "total_views": 210000000,
+    "description": "Beauty, skincare, and makeup tutorials for Indian women.",
+    "profile_pic_url": "https://yt3.googleusercontent.com/example_beauty_profile.jpg",
+    "banner_url": null,
+    "is_verified": false,
+    "joined_date": "Mar 15, 2018",
+    "country": "India",
+    "category": "beauty",
+    "location": "Mumbai",
+    "external_links": [
+      "https://instagram.com/bebeautifulindia"
+    ],
+    "recent_videos": [
+      {
+        "video_id": "abc123xyz",
+        "title": "10-Minute Everyday Makeup Routine for Beginners",
+        "thumbnail_url": "https://i.ytimg.com/vi/abc123xyz/hqdefault.jpg",
+        "view_count": 450000,
+        "upload_date": "3 days ago",
+        "duration": "10:02"
+      }
+    ],
+    "video_thumbnails": [
+      "https://i.ytimg.com/vi/abc123xyz/hqdefault.jpg"
+    ],
+    "video_urls": [
+      "https://www.youtube.com/watch?v=abc123xyz"
+    ],
+    "scrape_timestamp": "2026-03-03T10:45:22.000Z"
+  }
+]

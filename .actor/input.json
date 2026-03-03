@@ -1,0 +1,16 @@
+{
+  "mode": "full",
+  "region": "ind",
+  "categories": ["tech", "gaming", "beauty", "travel", "food", "fitness"],
+  "locations": ["India", "Mumbai", "Delhi", "Bangalore"],
+  "maxChannels": 50,
+  "maxVideosPerChannel": 6,
+  "downloadThumbnails": false,
+  "minSubscribers": 1000,
+  "maxDiscoveryRetries": 3,
+  "headless": true,
+  "proxyConfiguration": {
+    "useApifyProxy": true,
+    "apifyProxyGroups": ["RESIDENTIAL"]
+  }
+}

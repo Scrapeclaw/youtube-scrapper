@@ -1,0 +1,48 @@
+{
+  "actorSpecification": 1,
+  "name": "youtube-channel-scraper",
+  "title": "YouTube Channel Scraper & Discovery",
+  "description": "Discovers and scrapes YouTube channels by category and location. Returns channel metrics (subscribers, views, videos), influencer tier, recent video data, and optional thumbnail images — no YouTube API key required.",
+  "version": "1.0",
+  "input": "./input_schema.json",
+  "dockerfile": "../Dockerfile",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "views": {
+        "overview": {
+          "title": "Channel Results",
+          "transformation": {
+            "fields": [
+              "channel_name",
+              "handle",
+              "channel_url",
+              "subscribers",
+              "influencer_tier",
+              "video_count",
+              "total_views",
+              "category",
+              "location",
+              "is_verified",
+              "country",
+              "joined_date",
+              "scrape_timestamp"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "channel_name": { "label": "Channel Name", "format": "text" },
+              "handle":       { "label": "Handle",       "format": "text" },
+              "channel_url":  { "label": "URL",          "format": "link" },
+              "subscribers":  { "label": "Subscribers",  "format": "number" },
+              "influencer_tier": { "label": "Tier",      "format": "text" },
+              "category":     { "label": "Category",     "format": "text" },
+              "location":     { "label": "Location",     "format": "text" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
