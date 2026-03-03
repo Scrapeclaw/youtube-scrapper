@@ -471,6 +471,26 @@ async def main():
             except Exception as exc:
                 logger.warning(f"Could not create proxy configuration: {exc}")
 
+        # Validate proxy by loading a lightweight site
+        if proxy_url:
+            logger.info("Testing proxy by fetching httpbin.org/ip...")
+            try:
+                from playwright.async_api import async_playwright
+                playwright = await async_playwright().start()
+                browser = await playwright.chromium.launch(headless=True)
+                context = await browser.new_context(proxy={"server": proxy_url})
+                page = await context.new_page()
+                await page.goto("https://httpbin.org/ip", timeout=30000)
+                content = await page.content()
+                logger.info(f"Proxy test page content: {content[:200]}")
+                await browser.close()
+                await playwright.stop()
+            except Exception as exc:
+                logger.error(f"Proxy test failed: {exc}")
+                # If proxy validation fails, unset proxy_url to avoid blocking
+                proxy_url = None
+                logger.warning("Proceeding without proxy.")
+
         # ----------------------------------------------------------------
         # 3. Build temporary config file
         # ----------------------------------------------------------------
@@ -495,6 +515,10 @@ async def main():
             logger.info("discovery_only mode: running discovery, pushing handles to dataset…")
             channels = await run_discovery(config_path, config, proxy_url)
             logger.info(f"Discovered {len(channels)} channels")
+            if not channels and proxy_url:
+                logger.warning("Discovery returned no channels using proxy. Retrying without proxy...")
+                channels = await run_discovery(config_path, config, None)
+                logger.info(f"Discovered {len(channels)} channels without proxy")
             for ch in channels:
                 await Actor.push_data(ch if isinstance(ch, dict) else {"handle": ch})
             logger.info("Discovery complete. Exiting.")
@@ -514,6 +538,10 @@ async def main():
                 try:
                     channels = await run_discovery(config_path, config, proxy_url)
                     logger.info(f"Discovery found {len(channels)} channels")
+                    if not channels and proxy_url:
+                        logger.warning("Discovery returned no channels using proxy. Retrying without proxy...")
+                        channels = await run_discovery(config_path, config, None)
+                        logger.info(f"Discovery found {len(channels)} channels without proxy")
                     channels_to_scrape = channels
                     await Actor.set_value(
                         state_key,
