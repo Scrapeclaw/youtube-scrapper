@@ -958,7 +958,11 @@ class YouTubeScraperPlaywright:
         try:
             # Navigate to About page
             about_url = channel_url.rstrip('/') + '/about'
-            await self.page.goto(about_url, timeout=60000, wait_until='domcontentloaded')
+            try:
+                await self.page.goto(about_url, timeout=90000, wait_until='load')
+            except asyncio.TimeoutError:
+                logger.warning(f"Load timeout on about page. Trying with 'domcontentloaded'...")
+                await self.page.goto(about_url, timeout=90000, wait_until='domcontentloaded')
             await asyncio.sleep(2)
 
             # Extract description
@@ -1016,7 +1020,11 @@ class YouTubeScraperPlaywright:
         try:
             # Navigate to Videos page
             videos_url = channel_url.rstrip('/') + '/videos'
-            await self.page.goto(videos_url, timeout=60000, wait_until='domcontentloaded')
+            try:
+                await self.page.goto(videos_url, timeout=90000, wait_until='load')
+            except asyncio.TimeoutError:
+                logger.warning(f"Load timeout on videos page. Trying with 'domcontentloaded'...")
+                await self.page.goto(videos_url, timeout=90000, wait_until='domcontentloaded')
             await asyncio.sleep(3)
 
             # Wait for video grid to load
@@ -1122,8 +1130,13 @@ class YouTubeScraperPlaywright:
             channel_url = f"https://www.youtube.com/@{channel_identifier}"
 
         try:
-            # Navigate to channel page
-            await self.page.goto(channel_url, timeout=60000, wait_until='domcontentloaded')
+            # Navigate to channel page with retry for proxy resilience
+            try:
+                await self.page.goto(channel_url, timeout=90000, wait_until='load')
+            except asyncio.TimeoutError:
+                logger.warning(f"Load timeout on {channel_url}. Trying with 'domcontentloaded'...")
+                await self.page.goto(channel_url, timeout=90000, wait_until='domcontentloaded')
+            
             await asyncio.sleep(random.uniform(1.5, 3.0))  # Random delay
 
             # Simulate human behavior - random mouse movements

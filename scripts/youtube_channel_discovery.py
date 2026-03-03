@@ -384,75 +384,104 @@ class YouTubeChannelDiscovery:
             logger.debug(f"Could not set up request interception: {e}")
 
     async def _extract_youtube_channels_from_google(self, query: str, max_results: int = 20) -> List[Dict]:
-        """Search Google and extract YouTube channel links"""
+        """Search Google and extract YouTube channel links with retry logic"""
         channels = []
+        max_retries = 3
+        base_timeout = 90000  # 90 seconds for proxy resilience
 
-        try:
-            # Construct Google search URL
-            search_url = f"https://www.google.com/search?q={quote_plus(query)}&num={max_results}"
-
-            await self.page.goto(search_url, timeout=60000, wait_until='domcontentloaded')
-            await asyncio.sleep(2)
-
-            # Accept cookies if prompted
+        for attempt in range(1, max_retries + 1):
             try:
-                accept_btn = await self.page.query_selector('button:has-text("Accept all"), button:has-text("I agree")')
-                if accept_btn:
-                    await accept_btn.click()
-                    await asyncio.sleep(1)
-            except:
-                pass
+                # Construct Google search URL
+                search_url = f"https://www.google.com/search?q={quote_plus(query)}&num={max_results}"
 
-            # Extract all links
-            links = await self.page.query_selector_all('a[href*="youtube.com"]')
-
-            for link in links:
+                # Use 'load' instead of 'domcontentloaded' for proxy resilience
                 try:
-                    href = await link.get_attribute('href')
-                    if not href:
-                        continue
+                    await self.page.goto(search_url, timeout=base_timeout, wait_until='load')
+                except asyncio.TimeoutError:
+                    logger.warning(f"Load timeout on Google search attempt {attempt}. Trying with 'domcontentloaded'...")
+                    await self.page.goto(search_url, timeout=base_timeout, wait_until='domcontentloaded')
+                
+                await asyncio.sleep(2)
 
-                    # Extract YouTube channel URL
-                    channel_info = self._parse_youtube_url(href)
-                    if channel_info and channel_info['channel_id'] not in self.discovered_channels:
-                        self.discovered_channels.add(channel_info['channel_id'])
-                        channels.append(channel_info)
+                # Accept cookies if prompted
+                try:
+                    accept_btn = await self.page.query_selector('button:has-text("Accept all"), button:has-text("I agree")')
+                    if accept_btn:
+                        await accept_btn.click()
+                        await asyncio.sleep(1)
+                except:
+                    pass
+
+                # Extract all links
+                links = await self.page.query_selector_all('a[href*="youtube.com"]')
+
+                for link in links:
+                    try:
+                        href = await link.get_attribute('href')
+                        if not href:
+                            continue
+
+                        # Extract YouTube channel URL
+                        channel_info = self._parse_youtube_url(href)
+                        if channel_info and channel_info['channel_id'] not in self.discovered_channels:
+                            self.discovered_channels.add(channel_info['channel_id'])
+                            channels.append(channel_info)
 
                 except Exception as e:
                     continue
 
-            logger.info(f"Found {len(channels)} new channels for query: {query}")
+                logger.info(f"Found {len(channels)} new channels for query: {query}")
+                return channels  # Success - return early
 
-        except Exception as e:
-            logger.error(f"Error searching Google: {e}")
+            except Exception as e:
+                logger.warning(f"Google search attempt {attempt} failed: {e}")
+                if attempt < max_retries:
+                    wait_time = (2 ** attempt) + random.uniform(0, 1)  # Exponential backoff
+                    logger.info(f"Retrying Google search in {wait_time:.1f}s...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    logger.error(f"Google search failed after {max_retries} attempts: {e}")
 
-        return channels
+        return channels  # Return empty list if all retries failed
 
     async def _search_youtube_directly(self, query: str, max_results: int = 20) -> List[Dict]:
-        """Search YouTube directly for channels"""
+        """Search YouTube directly for channels with retry logic"""
         channels = []
+        max_retries = 3
+        base_timeout = 90000  # 90 seconds for proxy resilience
 
-        try:
-            # Search on YouTube
-            search_url = f"https://www.youtube.com/results?search_query={quote_plus(query)}&sp=EgIQAg%253D%253D"  # sp filter for channels
-
-            await self.page.goto(search_url, timeout=60000, wait_until='domcontentloaded')
-            await asyncio.sleep(random.uniform(2, 4))  # Random delay for human-like behavior
-
-            # Simulate human behavior - random mouse movement
-            await self._simulate_human_behavior()
-
-            # Accept cookies if prompted
+        for attempt in range(1, max_retries + 1):
             try:
-                accept_btn = await self.page.query_selector('button[aria-label*="Accept"], tp-yt-paper-button:has-text("Accept all")')
-                if accept_btn:
-                    await accept_btn.click()
-                    await asyncio.sleep(1)
-            except:
-                pass
+                # Search on YouTube
+                search_url = f"https://www.youtube.com/results?search_query={quote_plus(query)}&sp=EgIQAg%253D%253D"  # sp filter for channels
 
-            # Wait for results
-            await self.page.wait_for_selector('ytd-channel-renderer, ytd-search-result-renderer', timeout=20000)
+                # Use 'load' instead of 'domcontentloaded' for proxy resilience
+                try:
+                    await self.page.goto(search_url, timeout=base_timeout, wait_until='load')
+                except asyncio.TimeoutError:
+                    logger.warning(f"Load timeout on attempt {attempt}. Trying with 'domcontentloaded'...")
+                    await self.page.goto(search_url, timeout=base_timeout, wait_until='domcontentloaded')
+                
+                await asyncio.sleep(random.uniform(2, 4))  # Random delay for human-like behavior
+
+                # Simulate human behavior - random mouse movement
+                await self._simulate_human_behavior()
+
+                # Accept cookies if prompted
+                try:
+                    accept_btn = await self.page.query_selector('button[aria-label*="Accept"], tp-yt-paper-button:has-text("Accept all")')
+                    if accept_btn:
+                        await accept_btn.click()
+                        await asyncio.sleep(1)
+                except:
+                    pass
+
+                # Wait for results (with longer timeout for proxy)
+                try:
+                    await self.page.wait_for_selector('ytd-channel-renderer, ytd-search-result-renderer', timeout=30000)
+                except asyncio.TimeoutError:
+                    logger.warning(f"Results timeout on attempt {attempt}. Page might still have loaded content.")
+                    # Don't fail yet - page might have loaded even if selector didn't appear
 
             # Scroll down to load more results
             await self._scroll_page()
@@ -492,11 +521,18 @@ class YouTubeChannelDiscovery:
                     continue
 
             logger.info(f"Found {len(channels)} channels from YouTube search: {query}")
+            return channels  # Success - return early
 
         except Exception as e:
-            logger.error(f"Error searching YouTube: {e}")
+            logger.warning(f"YouTube search attempt {attempt} failed: {e}")
+            if attempt < max_retries:
+                wait_time = (2 ** attempt) + random.uniform(0, 1)  # Exponential backoff
+                logger.info(f"Retrying YouTube search in {wait_time:.1f}s...")
+                await asyncio.sleep(wait_time)
+            else:
+                logger.error(f"YouTube search failed after {max_retries} attempts: {e}")
 
-        return channels
+        return channels  # Return empty list if all retries failed
 
     def _clean_channel_name(self, name: str) -> str:
         """Clean channel name by removing duplicates and extra whitespace"""
