@@ -167,30 +167,82 @@ class ApifyChannelScraper:
             ChannelNotFoundException,
             ChannelSkippedException,
             RateLimitException,
-            determine_influencer_tier,
         )
+        from playwright.async_api import async_playwright
 
         stats = {"success": 0, "failed": 0, "skipped": 0}
 
         scraper = YouTubeScraperPlaywright(config_path=self.config_path)
 
-        # Patch the browser startup to inject Apify proxy
-        original_start = scraper.start_browser
-
-        async def patched_start(headless=True):
-            await original_start(headless=headless)
-            if self.proxy_url and scraper.context:
-                # Re-create context with proxy (Playwright requires proxy at context creation)
-                # We patch at the launch level instead; handled below.
-                pass
-
-        # If we have a proxy URL, monkey-patch the proxy manager
+        # Inject Apify proxy if available by monkey-patching context creation
         if self.proxy_url:
-            from unittest.mock import MagicMock
-            mock_pm = MagicMock()
-            mock_pm.enabled = True
-            mock_pm.get_playwright_proxy.return_value = {"server": self.proxy_url}
-            scraper.proxy_manager = mock_pm
+            original_start = scraper.start_browser
+            
+            async def patched_start(headless=True):
+                """Patched start_browser that injects the Apify proxy URL."""
+                logger.info("Starting browser for scraping with anti-detection...")
+                scraper.playwright = await async_playwright().start()
+
+                # Get anti-detection configuration
+                try:
+                    from anti_detection import AntiDetectionManager, get_stealth_scripts, HumanBehavior
+                except ImportError:
+                    AntiDetectionManager = None
+                    get_stealth_scripts = None
+                    HumanBehavior = None
+
+                if AntiDetectionManager:
+                    scraper.anti_detection = AntiDetectionManager()
+                    fingerprint = scraper.anti_detection.generate_fingerprint()
+                    chrome_args = scraper.anti_detection.get_chrome_args()
+                else:
+                    scraper.anti_detection = None
+                    fingerprint = scraper._get_default_fingerprint()
+                    chrome_args = scraper._get_default_chrome_args()
+
+                scraper.current_fingerprint = fingerprint
+
+                # Launch browser with anti-detection settings
+                scraper.browser = await scraper.playwright.chromium.launch(
+                    headless=headless,
+                    args=chrome_args
+                )
+
+                # Create context with proxy URL directly
+                context_kwargs = dict(
+                    viewport=fingerprint['viewport'],
+                    user_agent=fingerprint['user_agent'],
+                    locale=fingerprint['locale'],
+                    timezone_id=fingerprint['timezone'],
+                    color_scheme=fingerprint.get('color_scheme', 'light'),
+                    device_scale_factor=fingerprint.get('device_scale_factor', 1),
+                    has_touch=fingerprint.get('has_touch', False),
+                    java_script_enabled=True,
+                    bypass_csp=True,
+                    proxy={"server": self.proxy_url},  # Inject Apify proxy here
+                )
+
+                scraper.context = await scraper.browser.new_context(**context_kwargs)
+                scraper.page = await scraper.context.new_page()
+
+                # Inject stealth scripts
+                if get_stealth_scripts:
+                    stealth_js = get_stealth_scripts(fingerprint)
+                else:
+                    stealth_js = scraper._get_default_stealth_script()
+
+                await scraper.page.add_init_script(stealth_js)
+                await scraper._setup_request_interception()
+
+                # Initialize human behavior simulator
+                if HumanBehavior:
+                    scraper.human_behavior = HumanBehavior(scraper.page)
+                else:
+                    scraper.human_behavior = None
+
+                logger.info(f"Browser started with fingerprint: {fingerprint['user_agent'][:60]}...")
+
+            scraper.start_browser = patched_start
 
         await scraper.start_browser(headless=True)
 
@@ -302,16 +354,74 @@ class ApifyChannelScraper:
 async def run_discovery(config_path: str, config: Dict, proxy_url: Optional[str]) -> List[Dict]:
     """Run YouTubeChannelDiscovery and return discovered channels."""
     from youtube_channel_discovery import YouTubeChannelDiscovery
+    from playwright.async_api import async_playwright
 
     discovery = YouTubeChannelDiscovery(config_path=config_path)
 
-    # Inject Apify proxy if available
-    if proxy_url and discovery.proxy_manager is not None:
-        from unittest.mock import MagicMock
-        mock_pm = MagicMock()
-        mock_pm.enabled = True
-        mock_pm.get_playwright_proxy.return_value = {"server": proxy_url}
-        discovery.proxy_manager = mock_pm
+    # Inject Apify proxy if available by monkey-patching context creation
+    if proxy_url:
+        original_start = discovery.start_browser
+        
+        async def patched_start(headless=True):
+            """Patched start_browser that injects the Apify proxy URL."""
+            logger.info("Starting browser for discovery with anti-detection...")
+            discovery.playwright = await async_playwright().start()
+
+            # Get anti-detection configuration
+            from anti_detection import AntiDetectionManager
+            if AntiDetectionManager:
+                discovery.anti_detection = AntiDetectionManager()
+                fingerprint = discovery.anti_detection.generate_fingerprint()
+                chrome_args = discovery.anti_detection.get_chrome_args()
+            else:
+                fingerprint = discovery._get_default_fingerprint()
+                chrome_args = discovery._get_default_chrome_args()
+
+            discovery.current_fingerprint = fingerprint
+
+            # Launch browser with anti-detection settings
+            discovery.browser = await discovery.playwright.chromium.launch(
+                headless=headless,
+                args=chrome_args
+            )
+
+            # Create context with proxy URL directly
+            context_kwargs = dict(
+                viewport=fingerprint['viewport'],
+                user_agent=fingerprint['user_agent'],
+                locale=fingerprint['locale'],
+                timezone_id=fingerprint['timezone'],
+                color_scheme=fingerprint.get('color_scheme', 'light'),
+                device_scale_factor=fingerprint.get('device_scale_factor', 1),
+                has_touch=fingerprint.get('has_touch', False),
+                java_script_enabled=True,
+                bypass_csp=True,
+                proxy={"server": proxy_url},  # Inject Apify proxy here
+            )
+
+            discovery.context = await discovery.browser.new_context(**context_kwargs)
+            discovery.page = await discovery.context.new_page()
+
+            # Inject stealth scripts
+            try:
+                from anti_detection import get_stealth_scripts
+                stealth_js = get_stealth_scripts(fingerprint)
+            except:
+                stealth_js = discovery._get_default_stealth_script()
+
+            await discovery.page.add_init_script(stealth_js)
+            await discovery._setup_request_interception()
+
+            # Initialize human behavior simulator
+            try:
+                from anti_detection import HumanBehavior
+                discovery.human_behavior = HumanBehavior(discovery.page)
+            except:
+                discovery.human_behavior = None
+
+            logger.info(f"Browser started with fingerprint: {fingerprint['user_agent'][:60]}...")
+
+        discovery.start_browser = patched_start
 
     await discovery.start_browser(headless=True)
 

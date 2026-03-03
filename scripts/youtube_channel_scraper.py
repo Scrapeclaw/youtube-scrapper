@@ -787,7 +787,7 @@ class YouTubeScraperPlaywright:
 
             # Wait for the channel header to appear
             try:
-                await self.page.wait_for_selector('ytd-c4-tabbed-header-renderer, #channel-header', timeout=10000)
+                await self.page.wait_for_selector('ytd-c4-tabbed-header-renderer, #channel-header', timeout=20000)
             except:
                 logger.warning("Channel header did not load")
 
@@ -958,7 +958,7 @@ class YouTubeScraperPlaywright:
         try:
             # Navigate to About page
             about_url = channel_url.rstrip('/') + '/about'
-            await self.page.goto(about_url, timeout=30000, wait_until='domcontentloaded')
+            await self.page.goto(about_url, timeout=60000, wait_until='domcontentloaded')
             await asyncio.sleep(2)
 
             # Extract description
@@ -1016,12 +1016,12 @@ class YouTubeScraperPlaywright:
         try:
             # Navigate to Videos page
             videos_url = channel_url.rstrip('/') + '/videos'
-            await self.page.goto(videos_url, timeout=30000, wait_until='domcontentloaded')
+            await self.page.goto(videos_url, timeout=60000, wait_until='domcontentloaded')
             await asyncio.sleep(3)
 
             # Wait for video grid to load
             try:
-                await self.page.wait_for_selector('ytd-rich-item-renderer, ytd-grid-video-renderer', timeout=10000)
+                await self.page.wait_for_selector('ytd-rich-item-renderer, ytd-grid-video-renderer', timeout=20000)
             except:
                 logger.warning("Video grid did not load")
                 return videos
@@ -1123,7 +1123,7 @@ class YouTubeScraperPlaywright:
 
         try:
             # Navigate to channel page
-            await self.page.goto(channel_url, timeout=30000, wait_until='domcontentloaded')
+            await self.page.goto(channel_url, timeout=60000, wait_until='domcontentloaded')
             await asyncio.sleep(random.uniform(1.5, 3.0))  # Random delay
 
             # Simulate human behavior - random mouse movements

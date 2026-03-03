@@ -391,7 +391,7 @@ class YouTubeChannelDiscovery:
             # Construct Google search URL
             search_url = f"https://www.google.com/search?q={quote_plus(query)}&num={max_results}"
 
-            await self.page.goto(search_url, timeout=30000, wait_until='domcontentloaded')
+            await self.page.goto(search_url, timeout=60000, wait_until='domcontentloaded')
             await asyncio.sleep(2)
 
             # Accept cookies if prompted
@@ -436,7 +436,7 @@ class YouTubeChannelDiscovery:
             # Search on YouTube
             search_url = f"https://www.youtube.com/results?search_query={quote_plus(query)}&sp=EgIQAg%253D%253D"  # sp filter for channels
 
-            await self.page.goto(search_url, timeout=30000, wait_until='domcontentloaded')
+            await self.page.goto(search_url, timeout=60000, wait_until='domcontentloaded')
             await asyncio.sleep(random.uniform(2, 4))  # Random delay for human-like behavior
 
             # Simulate human behavior - random mouse movement
@@ -452,7 +452,7 @@ class YouTubeChannelDiscovery:
                 pass
 
             # Wait for results
-            await self.page.wait_for_selector('ytd-channel-renderer, ytd-search-result-renderer', timeout=10000)
+            await self.page.wait_for_selector('ytd-channel-renderer, ytd-search-result-renderer', timeout=20000)
 
             # Scroll down to load more results
             await self._scroll_page()
