@@ -416,19 +416,15 @@ class YouTubeChannelDiscovery:
                 links = await self.page.query_selector_all('a[href*="youtube.com"]')
 
                 for link in links:
-                    try:
-                        href = await link.get_attribute('href')
-                        if not href:
-                            continue
+                    href = await link.get_attribute('href')
+                    if not href:
+                        continue
 
-                        # Extract YouTube channel URL
-                        channel_info = self._parse_youtube_url(href)
-                        if channel_info and channel_info['channel_id'] not in self.discovered_channels:
-                            self.discovered_channels.add(channel_info['channel_id'])
-                            channels.append(channel_info)
-
-                except Exception as e:
-                    continue
+                    # Extract YouTube channel URL
+                    channel_info = self._parse_youtube_url(href)
+                    if channel_info and channel_info['channel_id'] not in self.discovered_channels:
+                        self.discovered_channels.add(channel_info['channel_id'])
+                        channels.append(channel_info)
 
                 logger.info(f"Found {len(channels)} new channels for query: {query}")
                 return channels  # Success - return early
@@ -483,14 +479,13 @@ class YouTubeChannelDiscovery:
                     logger.warning(f"Results timeout on attempt {attempt}. Page might still have loaded content.")
                     # Don't fail yet - page might have loaded even if selector didn't appear
 
-            # Scroll down to load more results
-            await self._scroll_page()
+                # Scroll down to load more results
+                await self._scroll_page()
 
-            # Extract channel results
-            channel_elements = await self.page.query_selector_all('ytd-channel-renderer')
+                # Extract channel results
+                channel_elements = await self.page.query_selector_all('ytd-channel-renderer')
 
-            for element in channel_elements[:max_results]:
-                try:
+                for element in channel_elements[:max_results]:
                     # Get channel link
                     link = await element.query_selector('a#main-link, a.channel-link')
                     if not link:
@@ -517,20 +512,17 @@ class YouTubeChannelDiscovery:
                         self.discovered_channels.add(channel_info['channel_id'])
                         channels.append(channel_info)
 
-                except Exception as e:
-                    continue
+                logger.info(f"Found {len(channels)} channels from YouTube search: {query}")
+                return channels  # Success - return early
 
-            logger.info(f"Found {len(channels)} channels from YouTube search: {query}")
-            return channels  # Success - return early
-
-        except Exception as e:
-            logger.warning(f"YouTube search attempt {attempt} failed: {e}")
-            if attempt < max_retries:
-                wait_time = (2 ** attempt) + random.uniform(0, 1)  # Exponential backoff
-                logger.info(f"Retrying YouTube search in {wait_time:.1f}s...")
-                await asyncio.sleep(wait_time)
-            else:
-                logger.error(f"YouTube search failed after {max_retries} attempts: {e}")
+            except Exception as e:
+                logger.warning(f"YouTube search attempt {attempt} failed: {e}")
+                if attempt < max_retries:
+                    wait_time = (2 ** attempt) + random.uniform(0, 1)  # Exponential backoff
+                    logger.info(f"Retrying YouTube search in {wait_time:.1f}s...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    logger.error(f"YouTube search failed after {max_retries} attempts: {e}")
 
         return channels  # Return empty list if all retries failed
 
