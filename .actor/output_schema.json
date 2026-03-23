@@ -1,5 +1,6 @@
 {
   "actorSpecification": 1,
+  "actorOutputSchemaVersion": 1,
   "title": "YouTube Channel Scraper Output",
   "description": "Each item represents a scraped YouTube channel with its metrics, recent videos, and metadata.",
   "type": "object",
