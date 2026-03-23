@@ -1,0 +1,158 @@
+{
+  "actorSpecification": 1,
+  "title": "YouTube Channel Scraper Output",
+  "description": "Each item represents a scraped YouTube channel with its metrics, recent videos, and metadata.",
+  "type": "object",
+  "properties": {
+    "channel_id": {
+      "title": "Channel ID",
+      "type": "string",
+      "description": "YouTube channel handle or unique identifier."
+    },
+    "channel_name": {
+      "title": "Channel Name",
+      "type": "string",
+      "description": "Display name of the YouTube channel."
+    },
+    "handle": {
+      "title": "Handle",
+      "type": "string",
+      "description": "YouTube @handle of the channel (e.g. @MrBeast)."
+    },
+    "channel_url": {
+      "title": "Channel URL",
+      "type": "string",
+      "description": "Full URL to the YouTube channel page."
+    },
+    "subscribers": {
+      "title": "Subscribers",
+      "type": "integer",
+      "description": "Total subscriber count."
+    },
+    "influencer_tier": {
+      "title": "Influencer Tier",
+      "type": "string",
+      "enum": ["nano", "micro", "mid", "macro", "mega"],
+      "description": "Tier classification based on subscriber count: nano (<10K), micro (10K–100K), mid (100K–500K), macro (500K–1M), mega (>1M)."
+    },
+    "video_count": {
+      "title": "Video Count",
+      "type": "integer",
+      "description": "Number of recent videos scraped for this channel."
+    },
+    "total_views": {
+      "title": "Total Views",
+      "type": "integer",
+      "description": "Cumulative view count across all channel videos."
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "description": "Channel's about/bio text."
+    },
+    "profile_pic_url": {
+      "title": "Profile Picture URL",
+      "type": "string",
+      "description": "URL of the channel's profile picture."
+    },
+    "banner_url": {
+      "title": "Banner URL",
+      "type": ["string", "null"],
+      "description": "URL of the channel's banner image, or null if not present."
+    },
+    "is_verified": {
+      "title": "Is Verified",
+      "type": "boolean",
+      "description": "Whether the channel has a YouTube verification badge."
+    },
+    "joined_date": {
+      "title": "Joined Date",
+      "type": "string",
+      "description": "The date the channel was created (e.g. 'Jan 1, 2016')."
+    },
+    "country": {
+      "title": "Country",
+      "type": "string",
+      "description": "Country listed on the channel's About page."
+    },
+    "category": {
+      "title": "Category",
+      "type": "string",
+      "description": "Content category used during discovery (e.g. tech, beauty, gaming)."
+    },
+    "location": {
+      "title": "Location",
+      "type": "string",
+      "description": "Geographic location used as the search query during discovery."
+    },
+    "external_links": {
+      "title": "External Links",
+      "type": "array",
+      "description": "Social media and website links from the channel's About page.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recent_videos": {
+      "title": "Recent Videos",
+      "type": "array",
+      "description": "List of recently uploaded videos scraped from the channel.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "video_id": {
+            "title": "Video ID",
+            "type": "string",
+            "description": "YouTube video ID."
+          },
+          "title": {
+            "title": "Title",
+            "type": "string",
+            "description": "Title of the video."
+          },
+          "thumbnail_url": {
+            "title": "Thumbnail URL",
+            "type": "string",
+            "description": "URL of the video thumbnail image."
+          },
+          "view_count": {
+            "title": "View Count",
+            "type": "integer",
+            "description": "Number of views on the video."
+          },
+          "upload_date": {
+            "title": "Upload Date",
+            "type": "string",
+            "description": "Relative or absolute upload date (e.g. '2 days ago')."
+          },
+          "duration": {
+            "title": "Duration",
+            "type": "string",
+            "description": "Video duration in MM:SS or HH:MM:SS format."
+          }
+        }
+      }
+    },
+    "video_thumbnails": {
+      "title": "Video Thumbnail URLs",
+      "type": "array",
+      "description": "Flat list of thumbnail URLs for recent videos.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "video_urls": {
+      "title": "Video URLs",
+      "type": "array",
+      "description": "Flat list of full YouTube watch URLs for recent videos.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scrape_timestamp": {
+      "title": "Scrape Timestamp",
+      "type": "string",
+      "description": "ISO 8601 timestamp of when this channel was scraped."
+    }
+  }
+}

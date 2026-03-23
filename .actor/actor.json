@@ -5,6 +5,7 @@
   "description": "Discovers and scrapes YouTube channels by category and location. Returns channel metrics (subscribers, views, videos), influencer tier, recent video data, and optional thumbnail images — no YouTube API key required.",
   "version": "1.0",
   "input": "./input_schema.json",
+  "output": "./output_schema.json",
   "dockerfile": "../Dockerfile",
   "storages": {
     "dataset": {
