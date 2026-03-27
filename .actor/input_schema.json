@@ -41,10 +41,7 @@
       "editor": "stringList",
       "items": { "type": "string" },
       "default": [
-        "gaming", "tech", "beauty", "fashion", "fitness",
-        "food", "travel", "music", "education", "comedy",
-        "lifestyle", "cooking", "diy", "art", "finance"
-      ]
+        "gaming", "tech", "beauty", "fashion", "fitness"]
     },
     "locations": {
       "title": "Locations",
@@ -52,7 +49,7 @@
       "description": "Geographic locations to search within (used when region = custom or to override preset).",
       "editor": "stringList",
       "items": { "type": "string" },
-      "default": ["India", "Mumbai", "Delhi", "Bangalore"]
+      "default": ["India"]
     },
     "channelHandles": {
       "title": "Channel Handles (scrape_channels mode)",
